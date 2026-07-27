@@ -13,6 +13,7 @@ type Config struct {
 	FrontendURL       string
 	DatabaseURL       string
 	SupabaseJWTSecret string
+	SupabaseJWKSURL   string
 }
 
 func Load() Config {
@@ -26,6 +27,7 @@ func Load() Config {
 		FrontendURL:       getEnv("FRONTEND_URL", "http://localhost:3000"),
 		DatabaseURL:       getEnv("DATABASE_URL", ""),
 		SupabaseJWTSecret: getEnv("SUPABASE_JWT_SECRET", ""),
+		SupabaseJWKSURL:   getEnv("SUPABASE_JWKS_URL", "https://mtefxvmndhqjgykexxug.supabase.co/auth/v1/.well-known/jwks.json"),
 	}
 }
 

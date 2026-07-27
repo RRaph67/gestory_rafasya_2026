@@ -30,7 +30,7 @@ content = EXCLUDED.content,
 url = EXCLUDED.url;
 
 INSERT INTO public.materials (course_id, title, type, order_index, content, url)
-SELECT id, 'Materi Video - Detik-detik Proklamasi', 'video', 3, NULL, '#'
+SELECT id, 'Materi Video - Detik-detik Proklamasi', 'video', 3, NULL, 'https://youtu.be/TTeRijrtDhg?si=zC-k-ia-QHAqKMH_'
 FROM public.courses WHERE slug = 'bab-1'
 ON CONFLICT (course_id, order_index) DO UPDATE SET
 title = EXCLUDED.title,

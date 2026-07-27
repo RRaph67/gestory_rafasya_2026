@@ -7,6 +7,7 @@ import (
 	"gestory-backend/internal/handler"
 	"gestory-backend/internal/repository"
 	"gestory-backend/internal/service"
+	"gestory-backend/internal/middleware"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -30,14 +31,19 @@ func NewRouter(cfg config.Config, db *gorm.DB) *gin.Engine {
 
 	courseRepo := repository.NewCourseRepository(db)
 	quizRepo := repository.NewQuizRepository(db)
+	gameRepo := repository.NewGameRepository(db)
+	profileRepo := repository.NewProfileRepository(db)
 
 	courseService := service.NewCourseService(courseRepo)
 	quizService := service.NewQuizService(courseRepo, quizRepo)
+	gameService := service.NewGameService(gameRepo)
+	profileService := service.NewProfileService(profileRepo)
 
 	healthHandler := handler.NewHealthHandler()
 	courseHandler := handler.NewCourseHandler(courseService)
 	quizHandler := handler.NewQuizHandler(courseService, quizService)
-	gameHandler := handler.NewGameHandler(courseService)
+	gameHandler := handler.NewGameHandler(courseService, gameService)
+	profileHandler := handler.NewProfileHandler(profileService)
 
 	api := router.Group("/api/v1")
 	{
@@ -49,9 +55,12 @@ func NewRouter(cfg config.Config, db *gorm.DB) *gin.Engine {
 		api.GET("/courses/:slug/questions", courseHandler.GetQuestionsBySlug)
 
 		api.GET("/quiz/:slug/questions", quizHandler.GetQuestions)
-		api.POST("/quiz/submit", quizHandler.Submit)
+		api.POST("/quiz/submit", middleware.SupabaseAuth(cfg.SupabaseJWTSecret, cfg.SupabaseJWKSURL), quizHandler.Submit)
 
 		api.GET("/game/questions", gameHandler.GetQuestions)
+		api.POST("/game/submit", middleware.SupabaseAuth(cfg.SupabaseJWTSecret, cfg.SupabaseJWKSURL), gameHandler.SubmitScore)
+		api.GET("/game/leaderboard", gameHandler.GetLeaderboard)
+		api.GET("/me", middleware.SupabaseAuth(cfg.SupabaseJWTSecret, cfg.SupabaseJWKSURL), profileHandler.Me)
 	}
 
 	return router
