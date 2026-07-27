@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"strings"
 	"time"
 
 	"gestory-backend/internal/config"
@@ -19,9 +20,15 @@ func NewRouter(cfg config.Config, db *gorm.DB) *gin.Engine {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	// Support comma-separated list of allowed origins (e.g. localhost + Vercel URL)
+	allowedOrigins := strings.Split(cfg.FrontendURL, ",")
+	for i, o := range allowedOrigins {
+		allowedOrigins[i] = strings.TrimSpace(o)
+	}
+
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{cfg.FrontendURL},
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
