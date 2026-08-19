@@ -1,0 +1,43 @@
+services:
+  # ── Backend: Go API ─────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend_go
+      dockerfile: Dockerfile
+    container_name: gestory-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      PORT: 8000
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      DATABASE_URL: ${DATABASE_URL}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      SUPABASE_JWKS_URL: ${SUPABASE_JWKS_URL}
+    networks:
+      - gestory-net
+
+  # ── Frontend: Next.js ────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./gestory
+      dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* harus di-pass saat build, bukan runtime
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_USE_MOCK_API: ${NEXT_PUBLIC_USE_MOCK_API:-false}
+    container_name: gestory-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - gestory-net
+
+networks:
+  gestory-net:
+    driver: bridge
